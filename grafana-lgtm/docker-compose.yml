@@ -1,0 +1,34 @@
+services:
+  grafana:
+    image: grafana/otel-lgtm
+    ports:
+      - "4317:4317" # OpenTelemetry Protocol (OTLP) over gRPC
+      - "4318:4318" # OpenTelemetry Protocol (OTLP) over HTTP
+      - "3000:3000" # UI
+    # volumes:
+    #   - ./dashboards/dashboard-provisioning.yml:/otel-lgtm/grafana/conf/provisioning/dashboards/grafana-dashboards.yaml
+    #   - ./dashboards/grafana-otel.json:/otel-lgtm/grafana-otel.json
+
+  db:
+    image: postgres:alpine
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+
+  customer:
+    build: ../services/customer
+    ports:
+      - 3001:3001
+    depends_on:
+      - grafana
+
+  antifraud:
+    build: ../services/fraud-detection
+    ports:
+      - 3002:3002
+    depends_on:
+      - grafana
